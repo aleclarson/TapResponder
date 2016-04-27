@@ -2,8 +2,10 @@
 { Responder } = require "gesture"
 
 Factory = require "factory"
+define = require "define"
+Event = require "event"
 
-module.exports = Factory "Touchable",
+module.exports = Factory "Tappable",
 
   kind: Responder
 
@@ -17,7 +19,7 @@ module.exports = Factory "Touchable",
     maxTapDelay: Infinity
     preventDistance: Infinity
 
-  initFrozenValues: ->
+  initFrozenValues: (options) ->
 
     maxTapCount: options.maxTapCount
 
@@ -37,18 +39,40 @@ module.exports = Factory "Touchable",
     @_tapCount = 0
     @_releaseTime = null
 
-  _onPanResponderMove: ->
-    return unless @_gesture
-    distance = Math.sqrt (Math.pow @_gesture.dx, 2) + (Math.pow @_gesture.dy, 2)
-    return @_onPanResponderTerminate() if distance >= @preventDistance
-    Responder::_onPanResponderMove.call this
+#
+# Responder.prototype
+#
 
-  _onPanResponderRelease: ->
-    return unless @_gesture
+  __onTouchMove: ->
+
+    if @isCaptured
+      distance = Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
+      if distance >= @preventDistance
+        @terminate()
+        return
+
+    Responder::__onTouchMove.apply this, arguments
+
+  __onRelease: ->
+
     now = Date.now()
-    @_resetTapCount() if @_releaseTime? and (now - @_releaseTime > @maxTapDelay)
+
+    if @_releaseTime? and (now - @_releaseTime > @maxTapDelay)
+      @_resetTapCount()
+
     @_releaseTime = now
+
     @_tapCount += 1
-    @didTap.emit @_tapCount, @_gesture
-    @_resetTapCount() if @_tapCount is @maxTapCount
-    Responder::_onPanResponderRelease.call this
+
+    @didTap.emit @_tapCount, @gesture
+
+    if @_tapCount is @maxTapCount
+      @_resetTapCount()
+
+    Responder::__onRelease.apply this, arguments
+
+  __onTerminate: ->
+
+    @_resetTapCount()
+
+    Responder::__onTerminate.apply this, arguments

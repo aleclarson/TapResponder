@@ -1,10 +1,14 @@
-var Factory, Responder;
+var Event, Factory, Responder, define;
 
 Responder = require("gesture").Responder;
 
 Factory = require("factory");
 
-module.exports = Factory("Touchable", {
+define = require("define");
+
+Event = require("event");
+
+module.exports = Factory("Tappable", {
   kind: Responder,
   optionTypes: {
     maxTapCount: Number,
@@ -16,7 +20,7 @@ module.exports = Factory("Touchable", {
     maxTapDelay: Infinity,
     preventDistance: Infinity
   },
-  initFrozenValues: function() {
+  initFrozenValues: function(options) {
     return {
       maxTapCount: options.maxTapCount,
       maxTapDelay: options.maxTapDelay,
@@ -34,33 +38,34 @@ module.exports = Factory("Touchable", {
     this._tapCount = 0;
     return this._releaseTime = null;
   },
-  _onPanResponderMove: function() {
+  __onTouchMove: function() {
     var distance;
-    if (!this._gesture) {
-      return;
+    if (this.isCaptured) {
+      distance = Math.sqrt((Math.pow(this.gesture.dx, 2)) + (Math.pow(this.gesture.dy, 2)));
+      if (distance >= this.preventDistance) {
+        this.terminate();
+        return;
+      }
     }
-    distance = Math.sqrt((Math.pow(this._gesture.dx, 2)) + (Math.pow(this._gesture.dy, 2)));
-    if (distance >= this.preventDistance) {
-      return this._onPanResponderTerminate();
-    }
-    return Responder.prototype._onPanResponderMove.call(this);
+    return Responder.prototype.__onTouchMove.apply(this, arguments);
   },
-  _onPanResponderRelease: function() {
+  __onRelease: function() {
     var now;
-    if (!this._gesture) {
-      return;
-    }
     now = Date.now();
     if ((this._releaseTime != null) && (now - this._releaseTime > this.maxTapDelay)) {
       this._resetTapCount();
     }
     this._releaseTime = now;
     this._tapCount += 1;
-    this.didTap.emit(this._tapCount, this._gesture);
+    this.didTap.emit(this._tapCount, this.gesture);
     if (this._tapCount === this.maxTapCount) {
       this._resetTapCount();
     }
-    return Responder.prototype._onPanResponderRelease.call(this);
+    return Responder.prototype.__onRelease.apply(this, arguments);
+  },
+  __onTerminate: function() {
+    this._resetTapCount();
+    return Responder.prototype.__onTerminate.apply(this, arguments);
   }
 });
 
