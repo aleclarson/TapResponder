@@ -1,9 +1,15 @@
 {
   "name": "tappable",
   "version": "1.0.0",
-  "main": "./js/src/Tappable",
+  "main": "js/src/Tappable",
   "dependencies": {
-    "factory": "aleclarson/factory#1.0.0",
+    "Type": "aleclarson/Type#1.0.0",
+    "event": "aleclarson/event#2.0.0",
     "gesture": "aleclarson/gesture#1.0.0"
+  },
+  "lotus": {
+    "plugins": [
+      "lotus-coffee"
+    ]
   }
 }

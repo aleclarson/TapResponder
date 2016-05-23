@@ -1,47 +1,46 @@
 
 { Responder } = require "gesture"
 
-Factory = require "factory"
-define = require "define"
 Event = require "event"
+Type = require "Type"
 
-module.exports = Factory "Tappable",
+type = Type "Tappable"
 
-  kind: Responder
+type.inherits Responder
 
-  optionTypes:
-    maxTapCount: Number
-    maxTapDelay: Number
-    preventDistance: Number
+type.optionTypes =
+  maxTapCount: Number
+  maxTapDelay: Number
+  preventDistance: Number
 
-  optionDefaults:
-    maxTapCount: 1
-    maxTapDelay: Infinity
-    preventDistance: Infinity
+type.optionDefaults =
+  maxTapCount: 1
+  maxTapDelay: Infinity
+  preventDistance: Infinity
 
-  initFrozenValues: (options) ->
+type.defineFrozenValues
 
-    maxTapCount: options.maxTapCount
+  maxTapCount: (options) -> options.maxTapCount
 
-    maxTapDelay: options.maxTapDelay
+  maxTapDelay: (options) -> options.maxTapDelay
 
-    preventDistance: options.preventDistance
+  preventDistance: (options) -> options.preventDistance
 
-    didTap: Event()
+  didTap: -> Event()
 
-  initValues: ->
+type.defineValues
 
-    _tapCount: 0
+  _tapCount: 0
 
-    _releaseTime: null
+  _releaseTime: null
+
+type.defineMethods
 
   _resetTapCount: ->
     @_tapCount = 0
     @_releaseTime = null
 
-#
-# Responder.prototype
-#
+type.overrideMethods
 
   __onTouchMove: ->
 
@@ -51,7 +50,7 @@ module.exports = Factory "Tappable",
         @terminate()
         return
 
-    Responder::__onTouchMove.apply this, arguments
+    @__super arguments
 
   __onRelease: ->
 
@@ -69,10 +68,12 @@ module.exports = Factory "Tappable",
     if @_tapCount is @maxTapCount
       @_resetTapCount()
 
-    Responder::__onRelease.apply this, arguments
+    @__super arguments
 
   __onTerminate: ->
 
     @_resetTapCount()
 
-    Responder::__onTerminate.apply this, arguments
+    @__super arguments
+
+module.exports = type.build()

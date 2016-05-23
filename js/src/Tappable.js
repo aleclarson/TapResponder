@@ -1,43 +1,55 @@
-var Event, Factory, Responder, define;
+var Event, Responder, Type, type;
 
 Responder = require("gesture").Responder;
 
-Factory = require("factory");
-
-define = require("define");
-
 Event = require("event");
 
-module.exports = Factory("Tappable", {
-  kind: Responder,
-  optionTypes: {
-    maxTapCount: Number,
-    maxTapDelay: Number,
-    preventDistance: Number
+Type = require("Type");
+
+type = Type("Tappable");
+
+type.inherits(Responder);
+
+type.optionTypes = {
+  maxTapCount: Number,
+  maxTapDelay: Number,
+  preventDistance: Number
+};
+
+type.optionDefaults = {
+  maxTapCount: 1,
+  maxTapDelay: 2e308,
+  preventDistance: 2e308
+};
+
+type.defineFrozenValues({
+  maxTapCount: function(options) {
+    return options.maxTapCount;
   },
-  optionDefaults: {
-    maxTapCount: 1,
-    maxTapDelay: Infinity,
-    preventDistance: Infinity
+  maxTapDelay: function(options) {
+    return options.maxTapDelay;
   },
-  initFrozenValues: function(options) {
-    return {
-      maxTapCount: options.maxTapCount,
-      maxTapDelay: options.maxTapDelay,
-      preventDistance: options.preventDistance,
-      didTap: Event()
-    };
+  preventDistance: function(options) {
+    return options.preventDistance;
   },
-  initValues: function() {
-    return {
-      _tapCount: 0,
-      _releaseTime: null
-    };
-  },
+  didTap: function() {
+    return Event();
+  }
+});
+
+type.defineValues({
+  _tapCount: 0,
+  _releaseTime: null
+});
+
+type.defineMethods({
   _resetTapCount: function() {
     this._tapCount = 0;
     return this._releaseTime = null;
-  },
+  }
+});
+
+type.overrideMethods({
   __onTouchMove: function() {
     var distance;
     if (this.isCaptured) {
@@ -47,7 +59,7 @@ module.exports = Factory("Tappable", {
         return;
       }
     }
-    return Responder.prototype.__onTouchMove.apply(this, arguments);
+    return this.__super(arguments);
   },
   __onRelease: function() {
     var now;
@@ -61,12 +73,14 @@ module.exports = Factory("Tappable", {
     if (this._tapCount === this.maxTapCount) {
       this._resetTapCount();
     }
-    return Responder.prototype.__onRelease.apply(this, arguments);
+    return this.__super(arguments);
   },
   __onTerminate: function() {
     this._resetTapCount();
-    return Responder.prototype.__onTerminate.apply(this, arguments);
+    return this.__super(arguments);
   }
 });
+
+module.exports = type.build();
 
 //# sourceMappingURL=../../map/src/Tappable.map
