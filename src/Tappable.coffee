@@ -40,8 +40,6 @@ type.defineMethods
     @_tapCount = 0
     @_releaseTime = null
 
-type.overrideMethods
-
   __onTouchMove: ->
 
     if @isCaptured

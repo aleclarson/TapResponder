@@ -46,10 +46,7 @@ type.defineMethods({
   _resetTapCount: function() {
     this._tapCount = 0;
     return this._releaseTime = null;
-  }
-});
-
-type.overrideMethods({
+  },
   __onTouchMove: function() {
     var distance;
     if (this.isCaptured) {
