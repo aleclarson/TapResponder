@@ -1,6 +1,7 @@
 
 { Responder } = require "gesture"
 
+getArgProp = require "getArgProp"
 Event = require "event"
 Type = require "Type"
 
@@ -20,11 +21,11 @@ type.optionDefaults =
 
 type.defineFrozenValues
 
-  maxTapCount: (options) -> options.maxTapCount
+  maxTapCount: getArgProp "maxTapCount"
 
-  maxTapDelay: (options) -> options.maxTapDelay
+  maxTapDelay: getArgProp "maxTapDelay"
 
-  preventDistance: (options) -> options.preventDistance
+  preventDistance: getArgProp "preventDistance"
 
   didTap: -> Event()
 
@@ -40,17 +41,7 @@ type.defineMethods
     @_tapCount = 0
     @_releaseTime = null
 
-  __onTouchMove: ->
-
-    if @isCaptured
-      distance = Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
-      if distance >= @preventDistance
-        @terminate()
-        return
-
-    @__super arguments
-
-  __onRelease: ->
+  _recognizeTap: ->
 
     now = Date.now()
 
@@ -65,6 +56,24 @@ type.defineMethods
 
     if @_tapCount is @maxTapCount
       @_resetTapCount()
+
+type.overrideMethods
+
+  __onTouchMove: ->
+
+    if @isGranted
+      distance = Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
+      if distance >= @preventDistance
+        @terminate()
+        return
+
+    @__super arguments
+
+  __onRelease: ->
+
+    # distance = Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
+    # if distance < @preventDistance
+    @_recognizeTap()
 
     @__super arguments
 

@@ -1,6 +1,8 @@
-var Event, Responder, Type, type;
+var Event, Responder, Type, getArgProp, type;
 
 Responder = require("gesture").Responder;
+
+getArgProp = require("getArgProp");
 
 Event = require("event");
 
@@ -23,15 +25,9 @@ type.optionDefaults = {
 };
 
 type.defineFrozenValues({
-  maxTapCount: function(options) {
-    return options.maxTapCount;
-  },
-  maxTapDelay: function(options) {
-    return options.maxTapDelay;
-  },
-  preventDistance: function(options) {
-    return options.preventDistance;
-  },
+  maxTapCount: getArgProp("maxTapCount"),
+  maxTapDelay: getArgProp("maxTapDelay"),
+  preventDistance: getArgProp("preventDistance"),
   didTap: function() {
     return Event();
   }
@@ -47,18 +43,7 @@ type.defineMethods({
     this._tapCount = 0;
     return this._releaseTime = null;
   },
-  __onTouchMove: function() {
-    var distance;
-    if (this.isCaptured) {
-      distance = Math.sqrt((Math.pow(this.gesture.dx, 2)) + (Math.pow(this.gesture.dy, 2)));
-      if (distance >= this.preventDistance) {
-        this.terminate();
-        return;
-      }
-    }
-    return this.__super(arguments);
-  },
-  __onRelease: function() {
+  _recognizeTap: function() {
     var now;
     now = Date.now();
     if ((this._releaseTime != null) && (now - this._releaseTime > this.maxTapDelay)) {
@@ -68,8 +53,25 @@ type.defineMethods({
     this._tapCount += 1;
     this.didTap.emit(this._tapCount, this.gesture);
     if (this._tapCount === this.maxTapCount) {
-      this._resetTapCount();
+      return this._resetTapCount();
     }
+  }
+});
+
+type.overrideMethods({
+  __onTouchMove: function() {
+    var distance;
+    if (this.isGranted) {
+      distance = Math.sqrt((Math.pow(this.gesture.dx, 2)) + (Math.pow(this.gesture.dy, 2)));
+      if (distance >= this.preventDistance) {
+        this.terminate();
+        return;
+      }
+    }
+    return this.__super(arguments);
+  },
+  __onRelease: function() {
+    this._recognizeTap();
     return this.__super(arguments);
   },
   __onTerminate: function() {
