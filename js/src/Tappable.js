@@ -1,10 +1,10 @@
-var Event, Responder, Type, getArgProp, type;
+var Event, Responder, Type, fromArgs, type;
 
 Responder = require("gesture").Responder;
 
-getArgProp = require("getArgProp");
+fromArgs = require("fromArgs");
 
-Event = require("event");
+Event = require("Event");
 
 Type = require("Type");
 
@@ -12,22 +12,16 @@ type = Type("Tappable");
 
 type.inherits(Responder);
 
-type.optionTypes = {
-  maxTapCount: Number,
-  maxTapDelay: Number,
-  preventDistance: Number
-};
-
-type.optionDefaults = {
-  maxTapCount: 1,
-  maxTapDelay: 2e308,
-  preventDistance: 2e308
-};
+type.defineOptions({
+  maxTapCount: Number.withDefault(1),
+  maxTapDelay: Number.withDefault(2e308),
+  preventDistance: Number.withDefault(2e308)
+});
 
 type.defineFrozenValues({
-  maxTapCount: getArgProp("maxTapCount"),
-  maxTapDelay: getArgProp("maxTapDelay"),
-  preventDistance: getArgProp("preventDistance"),
+  maxTapCount: fromArgs("maxTapCount"),
+  maxTapDelay: fromArgs("maxTapDelay"),
+  preventDistance: fromArgs("preventDistance"),
   didTap: function() {
     return Event();
   }
@@ -39,6 +33,9 @@ type.defineValues({
 });
 
 type.defineMethods({
+  _isTapPrevented: function() {
+    return this.preventDistance > Math.sqrt((Math.pow(this.gesture.dx, 2)) + (Math.pow(this.gesture.dy, 2)));
+  },
   _resetTapCount: function() {
     this._tapCount = 0;
     return this._releaseTime = null;
@@ -59,19 +56,8 @@ type.defineMethods({
 });
 
 type.overrideMethods({
-  __onTouchMove: function() {
-    var distance;
-    if (this.isGranted) {
-      distance = Math.sqrt((Math.pow(this.gesture.dx, 2)) + (Math.pow(this.gesture.dy, 2)));
-      if (distance >= this.preventDistance) {
-        this.terminate();
-        return;
-      }
-    }
-    return this.__super(arguments);
-  },
   __onRelease: function() {
-    this._recognizeTap();
+    this._isTapPrevented() || this._recognizeTap();
     return this.__super(arguments);
   },
   __onTerminate: function() {
@@ -82,4 +68,4 @@ type.overrideMethods({
 
 module.exports = type.build();
 
-//# sourceMappingURL=../../map/src/Tappable.map
+//# sourceMappingURL=map/Tappable.map

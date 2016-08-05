@@ -1,31 +1,26 @@
 
 { Responder } = require "gesture"
 
-getArgProp = require "getArgProp"
-Event = require "event"
+fromArgs = require "fromArgs"
+Event = require "Event"
 Type = require "Type"
 
 type = Type "Tappable"
 
 type.inherits Responder
 
-type.optionTypes =
-  maxTapCount: Number
-  maxTapDelay: Number
-  preventDistance: Number
-
-type.optionDefaults =
-  maxTapCount: 1
-  maxTapDelay: Infinity
-  preventDistance: Infinity
+type.defineOptions
+  maxTapCount: Number.withDefault 1
+  maxTapDelay: Number.withDefault Infinity
+  preventDistance: Number.withDefault Infinity
 
 type.defineFrozenValues
 
-  maxTapCount: getArgProp "maxTapCount"
+  maxTapCount: fromArgs "maxTapCount"
 
-  maxTapDelay: getArgProp "maxTapDelay"
+  maxTapDelay: fromArgs "maxTapDelay"
 
-  preventDistance: getArgProp "preventDistance"
+  preventDistance: fromArgs "preventDistance"
 
   didTap: -> Event()
 
@@ -37,6 +32,9 @@ type.defineValues
 
 type.defineMethods
 
+  _isTapPrevented: ->
+    @preventDistance > Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
+
   _resetTapCount: ->
     @_tapCount = 0
     @_releaseTime = null
@@ -45,8 +43,7 @@ type.defineMethods
 
     now = Date.now()
 
-    if @_releaseTime? and (now - @_releaseTime > @maxTapDelay)
-      @_resetTapCount()
+    @_resetTapCount() if @_releaseTime? and (now - @_releaseTime > @maxTapDelay)
 
     @_releaseTime = now
 
@@ -54,33 +51,16 @@ type.defineMethods
 
     @didTap.emit @_tapCount, @gesture
 
-    if @_tapCount is @maxTapCount
-      @_resetTapCount()
+    @_resetTapCount() if @_tapCount is @maxTapCount
 
 type.overrideMethods
 
-  __onTouchMove: ->
-
-    if @isGranted
-      distance = Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
-      if distance >= @preventDistance
-        @terminate()
-        return
-
-    @__super arguments
-
   __onRelease: ->
-
-    # distance = Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
-    # if distance < @preventDistance
-    @_recognizeTap()
-
+    @_isTapPrevented() or @_recognizeTap()
     @__super arguments
 
   __onTerminate: ->
-
     @_resetTapCount()
-
     @__super arguments
 
 module.exports = type.build()
