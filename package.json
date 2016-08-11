@@ -1,10 +1,11 @@
 {
   "name": "tappable",
   "version": "1.0.0",
-  "main": "js/src/Tappable",
+  "main": "js/Tappable",
   "dependencies": {
     "Event": "aleclarson/Event#2.0.1",
     "Type": "aleclarson/Type#1.1.0",
+    "emptyFunction": "aleclarson/emptyFunction#1.0.0",
     "fromArgs": "aleclarson/fromArgs#1.0.0",
     "gesture": "aleclarson/gesture#1.0.0"
   },

@@ -1,6 +1,7 @@
 
 { Responder } = require "gesture"
 
+emptyFunction = require "emptyFunction"
 fromArgs = require "fromArgs"
 Event = require "Event"
 Type = require "Type"
@@ -24,6 +25,10 @@ type.defineFrozenValues
 
   didTap: -> Event()
 
+  _isTapPrevented: ->
+    if @preventDistance is Infinity
+      return emptyFunction.thatReturnsFalse
+
 type.defineValues
 
   _tapCount: 0
@@ -33,7 +38,7 @@ type.defineValues
 type.defineMethods
 
   _isTapPrevented: ->
-    @preventDistance > Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
+    @preventDistance < Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
 
   _resetTapCount: ->
     @_tapCount = 0

@@ -1,6 +1,8 @@
-var Event, Responder, Type, fromArgs, type;
+var Event, Responder, Type, emptyFunction, fromArgs, type;
 
 Responder = require("gesture").Responder;
+
+emptyFunction = require("emptyFunction");
 
 fromArgs = require("fromArgs");
 
@@ -24,6 +26,11 @@ type.defineFrozenValues({
   preventDistance: fromArgs("preventDistance"),
   didTap: function() {
     return Event();
+  },
+  _isTapPrevented: function() {
+    if (this.preventDistance === 2e308) {
+      return emptyFunction.thatReturnsFalse;
+    }
   }
 });
 
@@ -34,7 +41,7 @@ type.defineValues({
 
 type.defineMethods({
   _isTapPrevented: function() {
-    return this.preventDistance > Math.sqrt((Math.pow(this.gesture.dx, 2)) + (Math.pow(this.gesture.dy, 2)));
+    return this.preventDistance < Math.sqrt((Math.pow(this.gesture.dx, 2)) + (Math.pow(this.gesture.dy, 2)));
   },
   _resetTapCount: function() {
     this._tapCount = 0;
