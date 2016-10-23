@@ -2,7 +2,6 @@
 { Responder } = require "gesture"
 
 emptyFunction = require "emptyFunction"
-fromArgs = require "fromArgs"
 Event = require "Event"
 Type = require "Type"
 
@@ -13,55 +12,70 @@ type.inherits Responder
 type.defineOptions
   maxTapCount: Number.withDefault 1
   maxTapDelay: Number.withDefault Infinity
+  maxReleaseDelay: Number.withDefault Infinity
   preventDistance: Number.withDefault Infinity
 
-type.defineFrozenValues
+type.defineFrozenValues (options) ->
 
-  maxTapCount: fromArgs "maxTapCount"
+  maxTapCount: options.maxTapCount
 
-  maxTapDelay: fromArgs "maxTapDelay"
+  maxTapDelay: options.maxTapDelay
 
-  preventDistance: fromArgs "preventDistance"
+  maxReleaseDelay: options.maxReleaseDelay
 
-  didTap: -> Event()
+  preventDistance: options.preventDistance
 
-  _isTapPrevented: ->
-    if @preventDistance is Infinity
-      return emptyFunction.thatReturnsFalse
+  didTap: Event()
+
+  _hasMovedTooFar: emptyFunction.thatReturnsFalse if @preventDistance is Infinity
 
 type.defineValues
 
   _tapCount: 0
 
-  _releaseTime: null
+  _lastTapTime: null
 
 type.defineMethods
 
-  _isTapPrevented: ->
+  _hasMovedTooFar: ->
     @preventDistance < Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
 
   _resetTapCount: ->
     @_tapCount = 0
-    @_releaseTime = null
+    @_lastTapTime = null
+    return
 
   _recognizeTap: ->
 
+    return if @_hasMovedTooFar()
+
     now = Date.now()
+    elapsedTime = now - @_grantTime
+    return if @maxReleaseDelay < elapsedTime
 
-    @_resetTapCount() if @_releaseTime? and (now - @_releaseTime > @maxTapDelay)
-
-    @_releaseTime = now
+    if @_lastTapTime isnt null
+      elapsedTime = now - @_lastTapTime
+      if @maxTapDelay < elapsedTime
+        @_resetTapCount()
 
     @_tapCount += 1
+    @_lastTapTime = now
 
     @didTap.emit @_tapCount, @gesture
 
-    @_resetTapCount() if @_tapCount is @maxTapCount
+    if @_tapCount is @maxTapCount
+      @_resetTapCount()
+    return
 
 type.overrideMethods
 
+  __onGrant: ->
+    @_grantTime = Date.now()
+    @__super arguments
+
   __onRelease: ->
-    @_isTapPrevented() or @_recognizeTap()
+    @_recognizeTap()
+    @_grantTime = null
     @__super arguments
 
   __onTerminate: ->
