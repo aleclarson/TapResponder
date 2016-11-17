@@ -25,7 +25,7 @@ type.defineFrozenValues (options) ->
 
   preventDistance: options.preventDistance
 
-  didTap: Event()
+  didTap: Event {async: no}
 
   _hasMovedTooFar: emptyFunction.thatReturnsFalse if @preventDistance is Infinity
 
