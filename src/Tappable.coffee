@@ -61,7 +61,8 @@ type.defineMethods
     @_tapCount += 1
     @_lastTapTime = now
 
-    @didTap.emit @_tapCount, @gesture
+    @gesture.tapCount = @_tapCount
+    @didTap.emit @gesture
 
     if @_tapCount is @maxTapCount
       @_resetTapCount()
