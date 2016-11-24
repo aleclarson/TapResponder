@@ -1,86 +1,86 @@
 
 { Responder } = require "gesture"
 
-getArgProp = require "getArgProp"
-Event = require "event"
+emptyFunction = require "emptyFunction"
+Event = require "Event"
 Type = require "Type"
 
 type = Type "Tappable"
 
 type.inherits Responder
 
-type.optionTypes =
-  maxTapCount: Number
-  maxTapDelay: Number
-  preventDistance: Number
+type.defineOptions
+  maxTapCount: Number.withDefault 1
+  maxTapDelay: Number.withDefault Infinity
+  maxReleaseDelay: Number.withDefault Infinity
+  preventDistance: Number.withDefault Infinity
 
-type.optionDefaults =
-  maxTapCount: 1
-  maxTapDelay: Infinity
-  preventDistance: Infinity
+type.defineFrozenValues (options) ->
 
-type.defineFrozenValues
+  maxTapCount: options.maxTapCount
 
-  maxTapCount: getArgProp "maxTapCount"
+  maxTapDelay: options.maxTapDelay
 
-  maxTapDelay: getArgProp "maxTapDelay"
+  maxReleaseDelay: options.maxReleaseDelay
 
-  preventDistance: getArgProp "preventDistance"
+  preventDistance: options.preventDistance
 
-  didTap: -> Event()
+  didTap: Event.sync()
+
+  _hasMovedTooFar: emptyFunction.thatReturnsFalse if @preventDistance is Infinity
 
 type.defineValues
 
   _tapCount: 0
 
-  _releaseTime: null
+  _lastTapTime: null
 
 type.defineMethods
 
+  _hasMovedTooFar: ->
+    @preventDistance < Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
+
   _resetTapCount: ->
     @_tapCount = 0
-    @_releaseTime = null
+    @_lastTapTime = null
+    return
 
   _recognizeTap: ->
 
+    return if @_hasMovedTooFar()
+
     now = Date.now()
+    elapsedTime = now - @_grantTime
+    return if @maxReleaseDelay < elapsedTime
 
-    if @_releaseTime? and (now - @_releaseTime > @maxTapDelay)
-      @_resetTapCount()
-
-    @_releaseTime = now
+    if @_lastTapTime isnt null
+      elapsedTime = now - @_lastTapTime
+      if @maxTapDelay < elapsedTime
+        @_resetTapCount()
 
     @_tapCount += 1
+    @_lastTapTime = now
 
-    @didTap.emit @_tapCount, @gesture
+    @gesture.tapCount = @_tapCount
+    @didTap.emit @gesture
 
     if @_tapCount is @maxTapCount
       @_resetTapCount()
+    return
 
 type.overrideMethods
 
-  __onTouchMove: ->
-
-    if @isGranted
-      distance = Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
-      if distance >= @preventDistance
-        @terminate()
-        return
-
+  __onGrant: ->
+    @_grantTime = Date.now()
     @__super arguments
 
   __onRelease: ->
-
-    # distance = Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
-    # if distance < @preventDistance
     @_recognizeTap()
-
+    @_grantTime = null
     @__super arguments
 
   __onTerminate: ->
-
     @_resetTapCount()
-
     @__super arguments
 
 module.exports = type.build()

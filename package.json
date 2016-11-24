@@ -1,16 +1,18 @@
 {
   "name": "tappable",
-  "version": "1.0.0",
-  "main": "js/src/Tappable",
-  "dependencies": {
-    "Type": "aleclarson/Type#1.0.0",
-    "event": "aleclarson/event#2.0.0",
-    "gesture": "aleclarson/gesture#1.0.0",
-    "getArgProp": "aleclarson/getArgProp#1.0.0"
+  "version": "1.1.0",
+  "main": "js/Tappable",
+  "plugins": [
+    "lotus-coffee"
+  ],
+  "scripts": {
+    "build": "coffee-build -v 1.11.x -b -o js src",
+    "postinstall": "npm run build"
   },
-  "lotus": {
-    "plugins": [
-      "lotus-coffee"
-    ]
+  "dependencies": {
+    "Event": "aleclarson/Event#2.1.1",
+    "Type": "aleclarson/Type#2.1.0",
+    "emptyFunction": "aleclarson/emptyFunction#1.0.0",
+    "gesture": "aleclarson/gesture#2.1.0"
   }
 }
