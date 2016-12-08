@@ -5,7 +5,7 @@ emptyFunction = require "emptyFunction"
 Event = require "Event"
 Type = require "Type"
 
-type = Type "Tappable"
+type = Type "TapResponder"
 
 type.inherits Responder
 
