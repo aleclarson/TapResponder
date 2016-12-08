@@ -1,7 +1,7 @@
 {
-  "name": "tappable",
-  "version": "1.1.1",
-  "main": "js/Tappable",
+  "name": "TapResponder",
+  "version": "1.2.0",
+  "main": "js/TapResponder",
   "plugins": [
     "lotus-coffee"
   ],
