@@ -1,5 +1,5 @@
 
-# tappable v1.1.0 [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
+# tappable v1.1.1 [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
 
 A [`Gesture.Responder`](https://github.com/aleclarson/gesture#gestureresponder) for detecting taps on a `View`.
 
