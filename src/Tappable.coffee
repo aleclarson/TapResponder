@@ -74,13 +74,11 @@ type.overrideMethods
     @_grantTime = Date.now()
     @__super arguments
 
-  __onRelease: ->
-    @_recognizeTap()
+  __onEnd: (event, finished) ->
+    if finished
+    then @_recognizeTap()
+    else @_resetTapCount()
     @_grantTime = null
-    @__super arguments
-
-  __onTerminate: ->
-    @_resetTapCount()
     @__super arguments
 
 module.exports = type.build()
