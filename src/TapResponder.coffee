@@ -74,7 +74,7 @@ type.overrideMethods
     @_grantTime = Date.now()
     @__super arguments
 
-  __onEnd: (event, finished) ->
+  __onRelease: (event, finished) ->
     if finished
     then @_recognizeTap()
     else @_resetTapCount()
