@@ -47,8 +47,6 @@ type.defineMethods
 
   _recognizeTap: ->
 
-    return if @_hasMovedTooFar()
-
     now = Date.now()
     elapsedTime = now - @_grantTime
     return if @maxReleaseDelay < elapsedTime
@@ -73,6 +71,14 @@ type.overrideMethods
   __onGrant: ->
     @_grantTime = Date.now()
     @__super arguments
+
+  __onTouchMove: (event) ->
+    @_gesture.__onTouchMove event
+    if @_hasMovedTooFar()
+      @terminate event.nativeEvent
+      return
+    @didTouchMove.emit @_gesture, event
+    return
 
   __onRelease: (event, finished) ->
     if finished
