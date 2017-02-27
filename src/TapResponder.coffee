@@ -9,11 +9,19 @@ type = Type "TapResponder"
 
 type.inherits Responder
 
-type.defineOptions
-  maxTapCount: Number.withDefault 1
-  maxTapDelay: Number.withDefault Infinity
-  maxReleaseDelay: Number.withDefault Infinity
-  preventDistance: Number.withDefault Infinity
+type.defineArgs ->
+
+  types:
+    maxTapCount: Number
+    maxTapDelay: Number
+    maxReleaseDelay: Number
+    preventDistance: Number
+
+  defaults:
+    maxTapCount: 1
+    maxTapDelay: Infinity
+    maxReleaseDelay: Infinity
+    preventDistance: Infinity
 
 type.defineFrozenValues (options) ->
 
