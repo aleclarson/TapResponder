@@ -2,7 +2,7 @@
 { Responder } = require "gesture"
 
 emptyFunction = require "emptyFunction"
-Event = require "Event"
+Event = require "eve"
 Type = require "Type"
 
 type = Type "TapResponder"
