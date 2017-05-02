@@ -1,5 +1,5 @@
 
-{ Responder } = require "gesture"
+{Responder} = require "gesture"
 
 emptyFunction = require "emptyFunction"
 Event = require "eve"
@@ -46,14 +46,14 @@ type.defineValues
 type.defineMethods
 
   _hasMovedTooFar: ->
-    @preventDistance < Math.sqrt (Math.pow @gesture.dx, 2) + (Math.pow @gesture.dy, 2)
+    @preventDistance < Math.sqrt (Math.pow @_gesture.dx, 2) + (Math.pow @_gesture.dy, 2)
 
   _resetTapCount: ->
     @_tapCount = 0
     @_lastTapTime = null
     return
 
-  _recognizeTap: ->
+  _didTap: ->
 
     now = Date.now()
     elapsedTime = now - @_grantTime
@@ -67,8 +67,8 @@ type.defineMethods
     @_tapCount += 1
     @_lastTapTime = now
 
-    @gesture.tapCount = @_tapCount
-    @didTap.emit @gesture
+    @_gesture.tapCount = @_tapCount
+    @didTap.emit @_gesture
 
     if @_tapCount is @maxTapCount
       @_resetTapCount()
@@ -90,7 +90,7 @@ type.overrideMethods
 
   __onRelease: (event, finished) ->
     if finished
-    then @_recognizeTap()
+    then @_didTap()
     else @_resetTapCount()
     @_grantTime = null
     @__super arguments
